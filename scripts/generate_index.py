@@ -66,45 +66,68 @@ def render_overview(total_books, total_categories, languages, levels):
     # 语言显示
     lang_display = " / ".join(sorted(languages)) if languages else "中文 / 英文"
     
-    return f"""## 📊 统计概览
-
-<div class="overview-stats">
+    return f"""<div class="overview-stats">
 <div class="stat-item">
-<span>📘 总书籍数</span>
-<strong id="total-books">{books_display}</strong>
+  <div class="stat-icon">📘</div>
+  <div class="stat-info">
+    <span>总书籍数</span>
+    <strong id="total-books">{books_display}</strong>
+  </div>
 </div>
 <div class="stat-item">
-<span>📂 分类数量</span>
-<strong id="total-categories">{cats_display}</strong>
+  <div class="stat-icon">📂</div>
+  <div class="stat-info">
+    <span>分类数量</span>
+    <strong id="total-categories">{cats_display}</strong>
+  </div>
 </div>
 <div class="stat-item">
-<span>🌍 支持语言</span>
-<strong>{lang_display}</strong>
+  <div class="stat-icon">🌍</div>
+  <div class="stat-info">
+    <span>支持语言</span>
+    <strong>{lang_display}</strong>
+  </div>
 </div>
 <div class="stat-item">
-<span>📥 支持格式</span>
-<strong>EPUB / MOBI / AZW3</strong>
+  <div class="stat-icon">📥</div>
+  <div class="stat-info">
+    <span>支持格式</span>
+    <strong>EPUB / MOBI / AZW3</strong>
+  </div>
 </div>
 </div>
 """
 
 
 def render_search_ui():
-    # 直接写 HTML（GitHub Pages 支持）
-    return """## 🔍 搜索书籍
-
-<div class="search-container">
-  <input
-    type="text"
-    id="search-input"
-    placeholder="搜索 书名 / 作者 / 分类（支持多关键词，用空格分隔）"
-    oninput="onSearch(event)"
-    aria-label="搜索书籍"
-    autocomplete="off"
-  />
-  <div class="search-hint">
-    <span>💡</span>
-    <span>支持搜索书名、作者、分类，可输入多个关键词（用空格分隔）</span>
+    return """<div class="search-section">
+  <div class="search-container">
+    <div class="search-input-wrapper">
+      <span class="search-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </span>
+      <input
+        type="text"
+        id="search-input"
+        placeholder="搜索 书名 / 作者 / 分类（按 / 键快速聚焦）"
+        oninput="onSearch(event)"
+        aria-label="搜索书籍"
+        autocomplete="off"
+      />
+      <button id="search-clear-btn" class="search-clear-btn" aria-label="清空搜索" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="search-hint">
+      <span class="hint-icon">💡</span>
+      <span>支持多关键词搜索（以空格分隔），如：“文学 鲁迅”</span>
+    </div>
   </div>
 </div>
 
@@ -160,17 +183,33 @@ def render_content(grouped, stats=None):
                     books_list = books_list[:max_books_per_section]
                     lines.append(f"<p class=\"note-text\">*（共 {len(grouped[category][language][level])} 本，显示前 {max_books_per_section} 本）*</p>\n")
 
+                lines.append('<div class="books-grid">\n')
                 for b in books_list:
-                    formats = ", ".join(b.get("formats", []))
                     author = b.get('author', '未知')
+                    badges_html = ""
+                    for f in b.get("formats", ["epub", "mobi", "azw3"]):
+                        badges_html += f'<span class="badge badge-{f.lower()}">{f}</span>'
+                    
                     lines.append(
-                        f"<div class=\"book-item\">\n"
-                        f"<strong>{b['title']}</strong>\n"
-                        f"<div class=\"book-meta\">👤 {author} ｜ 📥 {formats}</div>\n"
-                        f"<a href=\"{b['link']}\" target=\"_blank\" rel=\"noopener\" class=\"book-link\">📥 下载</a>\n"
-                        f"</div>\n"
+                        f'<div class="book-item">\n'
+                        f'  <div>\n'
+                        f'    <div class="book-title" title="{b["title"]}">{b["title"]}</div>\n'
+                        f'    <div class="book-author">👤 {author}</div>\n'
+                        f'  </div>\n'
+                        f'  <div>\n'
+                        f'    <div class="book-badges">{badges_html}</div>\n'
+                        f'    <a href="{b["link"]}" target="_blank" rel="noopener" class="book-download-btn">\n'
+                        f'      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">\n'
+                        f'        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>\n'
+                        f'        <polyline points="7 10 12 15 17 10"></polyline>\n'
+                        f'        <line x1="12" y1="15" x2="12" y2="3"></line>\n'
+                        f'      </svg>\n'
+                        f'      下载资源\n'
+                        f'    </a>\n'
+                        f'  </div>\n'
+                        f'</div>\n'
                     )
-
+                lines.append('</div>\n')
                 lines.append("")
         
         lines.append("</div>\n\n")
@@ -339,10 +378,10 @@ def generate_html(md_content):
     const totalBooksEl = document.getElementById('total-books');
     const totalCatsEl = document.getElementById('total-categories');
     if (totalBooksEl && stats.total_books) {{
-        totalBooksEl.textContent = stats.total_books.toLocaleString() + ' 本';
+        totalBooksEl.textContent = stats.total_books.toLocaleString();
     }}
     if (totalCatsEl && stats.categories_count) {{
-        totalCatsEl.textContent = stats.categories_count.toLocaleString() + ' 个';
+        totalCatsEl.textContent = stats.categories_count.toLocaleString();
     }}
 }})();
 </script>"""
@@ -369,25 +408,71 @@ def generate_html(md_content):
     <link rel="preload" href="search.js" as="script">
     
     <title>📚 电子书下载宝库 - Ebook Treasure Chest</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Solarized Dark Color Palette */
         :root {{
-            --base03: #002b36;  /* darkest background */
-            --base02: #073642;  /* dark background */
-            --base01: #586e75;  /* dark content */
-            --base00: #657b83;  /* content */
-            --base0: #839496;   /* main content */
-            --base1: #93a1a1;   /* comments */
-            --base2: #eee8d5;   /* light background */
-            --base3: #fdf6e3;   /* lightest background */
-            --yellow: #b58900;
-            --orange: #cb4b16;
-            --red: #dc322f;
-            --magenta: #d33682;
-            --violet: #6c71c4;
-            --blue: #268bd2;
-            --cyan: #2aa198;
-            --green: #859900;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-heading: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            
+            /* Light Theme Colors */
+            --bg-app: #f6f8fa;
+            --bg-card: #ffffff;
+            --bg-header: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --bg-header-accent: rgba(255, 255, 255, 0.1);
+            --border-color: #e5e7eb;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+            --accent-color: #4f46e5;
+            --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --accent-hover: #4338ca;
+            --success-color: #10b981;
+            --download-btn-bg: #4f46e5;
+            --download-btn-text: #ffffff;
+            --download-btn-hover: #4338ca;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            --card-glow: rgba(79, 70, 229, 0.05);
+            
+            --badge-epub-bg: #e0f2fe;
+            --badge-epub-text: #0369a1;
+            --badge-mobi-bg: #fef3c7;
+            --badge-mobi-text: #b45309;
+            --badge-azw3-bg: #d1fae5;
+            --badge-azw3-text: #065f46;
+        }}
+        
+        [data-theme="dark"] {{
+            /* Dark Theme Colors */
+            --bg-app: #090d16;
+            --bg-card: #111827;
+            --bg-header: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+            --bg-header-accent: rgba(255, 255, 255, 0.03);
+            --border-color: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #e5e7eb;
+            --text-muted: #9ca3af;
+            --accent-color: #818cf8;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --accent-hover: #4f46e5;
+            --success-color: #34d399;
+            --download-btn-bg: #6366f1;
+            --download-btn-text: #ffffff;
+            --download-btn-hover: #4f46e5;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+            --card-glow: rgba(99, 102, 241, 0.15);
+            
+            --badge-epub-bg: rgba(3, 105, 161, 0.2);
+            --badge-epub-text: #38bdf8;
+            --badge-mobi-bg: rgba(180, 83, 9, 0.2);
+            --badge-mobi-text: #fbbf24;
+            --badge-azw3-bg: rgba(6, 95, 70, 0.2);
+            --badge-azw3-text: #34d399;
         }}
         
         * {{
@@ -397,50 +482,149 @@ def generate_html(md_content):
         }}
         
         body {{
-            font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Roboto Mono", "Source Code Pro", "Consolas", "Courier New", monospace, "Microsoft YaHei", sans-serif;
-            line-height: 1.7;
+            font-family: var(--font-sans);
+            background-color: var(--bg-app);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+            padding-bottom: 0;
+        }}
+        
+        .main-wrapper {{
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            color: var(--base0);
-            background: var(--base03);
-            min-height: 100vh;
+            padding: 0 20px;
         }}
         
         @media (max-width: 768px) {{
-            body {{
-                padding: 15px;
+            .main-wrapper {{
+                padding: 0 15px;
             }}
         }}
         
-        header {{
-            background: var(--base02);
-            padding: 30px;
-            border-radius: 8px;
-            border: 1px solid var(--base01);
+        .app-header {{
+            background: var(--bg-header);
+            color: #ffffff;
+            padding: 50px 20px;
+            border-radius: 0 0 24px 24px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
         }}
         
-        h1 {{
-            font-size: 2.5em;
-            margin: 0 0 16px 0;
-            color: var(--cyan);
-            font-weight: 700;
-            text-align: center;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            letter-spacing: -0.5px;
+        .app-header::before,
+        .app-header::after {{
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            filter: blur(40px);
+            pointer-events: none;
         }}
+        
+        .app-header::before {{
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            right: -50px;
+        }}
+        
+        .app-header::after {{
+            width: 200px;
+            height: 200px;
+            bottom: -80px;
+            left: -50px;
+        }}
+        
+        .header-container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }}
+        
+        .brand {{
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }}
+        
+        .logo-emoji {{
+            font-size: 2.8rem;
+            animation: float 4s ease-in-out infinite;
+        }}
+        
+        @keyframes float {{
+            0%, 100% {{ transform: translateY(0); }}
+            50% {{ transform: translateY(-8px); }}
+        }}
+        
+        .logo-text {{
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: var(--font-heading);
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }}
+        
+        .subtitle {{
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 600px;
+            line-height: 1.5;
+        }}
+        
+        .theme-toggle-btn {{
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-header-accent);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            z-index: 10;
+        }}
+        
+        .theme-toggle-btn:hover {{
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }}
+        
+        .theme-toggle-btn svg {{
+            width: 20px;
+            height: 20px;
+        }}
+        
+        [data-theme="dark"] .sun-icon {{ display: block; }}
+        [data-theme="dark"] .moon-icon {{ display: none; }}
+        .sun-icon {{ display: none; }}
+        .moon-icon {{ display: block; }}
         
         h2 {{
-            font-size: 1.75em;
-            margin: 32px 0 20px 0;
+            font-size: 1.6rem;
+            margin: 35px 0 20px 0;
             padding-bottom: 12px;
-            border-bottom: 2px solid var(--blue);
-            color: var(--base1);
-            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 700;
+            font-family: var(--font-heading);
             position: relative;
-            font-family: "SF Mono", "Monaco", monospace;
         }}
         
         h2::before {{
@@ -450,113 +634,150 @@ def generate_html(md_content):
             bottom: -2px;
             width: 60px;
             height: 2px;
-            background: var(--cyan);
+            background: var(--accent-gradient);
             border-radius: 1px;
         }}
         
         h3 {{
-            font-size: 1.3em;
-            margin: 24px 0 12px 0;
-            color: var(--base0);
-            font-weight: 500;
-            font-family: "SF Mono", "Monaco", monospace;
+            font-size: 1.15rem;
+            margin: 25px 0 12px 0;
+            color: var(--accent-color);
+            font-weight: 600;
+            font-family: var(--font-heading);
         }}
         
         h4 {{
-            font-size: 1.1em;
-            margin: 16px 0 8px 0;
-            color: var(--base00);
+            font-size: 0.95rem;
+            margin: 15px 0 10px 0;
+            color: var(--text-muted);
             font-weight: 500;
-            font-family: "SF Mono", "Monaco", monospace;
+            font-family: var(--font-sans);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }}
         
         a {{
-            color: var(--blue);
+            color: var(--accent-color);
             text-decoration: none;
             transition: all 0.2s ease;
             font-weight: 500;
         }}
         
         a:hover {{
-            color: var(--cyan);
+            color: var(--accent-hover);
             text-decoration: underline;
-        }}
-        
-        a:focus {{
-            outline: 2px solid var(--blue);
-            outline-offset: 2px;
-            border-radius: 2px;
         }}
         
         blockquote {{
             padding: 16px 20px;
-            color: var(--base1);
-            border-left: 4px solid var(--yellow);
+            color: var(--text-secondary);
+            border-left: 4px solid var(--accent-color);
             margin: 20px 0;
-            background: var(--base02);
-            border-radius: 6px;
-            font-style: italic;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+            background: var(--bg-card);
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            border-left-width: 4px;
         }}
         
         hr {{
             height: 1px;
             margin: 40px 0;
-            background: linear-gradient(90deg, transparent, var(--base01), transparent);
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
             border: 0;
         }}
         
-        .search-container {{
+        .search-section {{
             margin: 30px 0;
-            position: relative;
-            background: var(--base02);
+        }}
+        
+        .search-container {{
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             padding: 24px;
-            border-radius: 8px;
-            border: 1px solid var(--base01);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+        }}
+        
+        .search-input-wrapper {{
+            position: relative;
+            display: flex;
+            align-items: center;
+        }}
+        
+        .search-icon {{
+            position: absolute;
+            left: 20px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            width: 20px;
+            height: 20px;
+        }}
+        
+        .search-icon svg {{
+            width: 100%;
+            height: 100%;
         }}
         
         input[type="text"] {{
             width: 100%;
-            padding: 14px 18px;
-            font-size: 16px;
-            border: 2px solid var(--base01);
-            border-radius: 6px;
-            box-sizing: border-box;
+            padding: 16px 50px 16px 55px;
+            font-size: 1.05rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background-color: var(--bg-app);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
             transition: all 0.3s ease;
-            background-color: var(--base03);
-            color: var(--base0);
-            font-family: "SF Mono", "Monaco", monospace;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-        }}
-        
-        input[type="text"]:hover {{
-            border-color: var(--base00);
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
         }}
         
         input[type="text"]:focus {{
             outline: none;
-            border-color: var(--blue);
-            box-shadow: 0 0 0 3px rgba(38, 139, 210, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.2);
-            background-color: var(--base02);
+            border-color: var(--accent-color);
+            background-color: var(--bg-card);
+            box-shadow: 0 0 0 4px var(--card-glow);
         }}
         
         input[type="text"]::placeholder {{
-            color: var(--base01);
+            color: var(--text-muted);
+        }}
+        
+        .search-clear-btn {{
+            position: absolute;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }}
+        
+        .search-clear-btn:hover {{
+            background-color: var(--border-color);
+            color: var(--text-primary);
+        }}
+        
+        .search-clear-btn svg {{
+            width: 18px;
+            height: 18px;
         }}
         
         .search-hint {{
             margin-top: 12px;
-            color: var(--base1);
-            font-size: 14px;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 12px;
-            background: var(--base03);
-            border-radius: 6px;
-            border: 1px solid var(--base01);
+            padding: 8px 16px;
+            background: var(--bg-app);
+            border-radius: 8px;
         }}
         
         #search-results {{
@@ -564,20 +785,74 @@ def generate_html(md_content):
             min-height: 50px;
         }}
         
-        .loading-indicator {{
+        .loading-indicator,
+        .search-ready-status {{
             text-align: center;
-            padding: 40px 20px;
-            color: var(--base1);
-            font-size: 16px;
-            background: var(--base02);
-            border-radius: 8px;
-            border: 1px solid var(--base01);
+            padding: 30px;
+            border-radius: 16px;
+            font-size: 1.05rem;
+            font-weight: 500;
+        }}
+        
+        .loading-indicator {{
+            background: var(--bg-app);
+            color: var(--text-secondary);
+            border: 1px dashed var(--border-color);
         }}
         
         .loading-indicator::before {{
             content: "⏳ ";
             animation: pulse 1.5s ease-in-out infinite;
-            color: var(--yellow);
+        }}
+        
+        .search-ready-status {{
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }}
+        
+        .search-results-info {{
+            padding: 10px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-sm);
+        }}
+        
+        .search-results-info strong {{
+            color: var(--accent-color);
+            font-weight: 600;
+        }}
+        
+        .search-no-results {{
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            color: var(--text-muted);
+            font-size: 1rem;
+            box-shadow: var(--shadow-md);
+        }}
+        
+        #search-results mark {{
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-weight: 600;
+        }}
+        
+        [data-theme="dark"] #search-results mark {{
+            background: rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
         }}
         
         @keyframes pulse {{
@@ -586,40 +861,18 @@ def generate_html(md_content):
         }}
         
         ul {{
-            padding-left: 0;
+            padding-left: 20px;
             margin: 16px 0;
-            list-style: none;
         }}
         
         li {{
-            margin: 12px 0;
-            padding: 12px 16px;
-            background: var(--base02);
-            border-left: 3px solid var(--blue);
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--base01);
-        }}
-        
-        li:hover {{
-            transform: translateX(4px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            border-left-width: 4px;
-            border-left-color: var(--cyan);
-            background: var(--base03);
-        }}
-        
-        li strong {{
-            color: var(--base1);
-            font-size: 1.05em;
-            font-weight: 600;
+            margin: 8px 0;
+            color: var(--text-secondary);
         }}
         
         p {{
             margin: 16px 0;
-            line-height: 1.7;
-            color: var(--base0);
+            color: var(--text-secondary);
         }}
         
         .overview-stats {{
@@ -630,227 +883,373 @@ def generate_html(md_content):
         }}
         
         .stat-item {{
-            padding: 20px 18px;
-            background: var(--base02);
-            border-radius: 8px;
-            border: 1px solid var(--base01);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            text-align: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }}
         
         .stat-item:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-            border-color: var(--cyan);
-            background: var(--base03);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-color);
+            box-shadow: 0 10px 20px -5px var(--card-glow);
         }}
         
-        .stat-item span {{
-            display: block;
-            font-size: 13px;
-            color: var(--base1);
-            margin-bottom: 10px;
+        .stat-icon {{
+            font-size: 2rem;
+            background: var(--bg-header-accent);
+            width: 54px;
+            height: 54px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }}
+        
+        .stat-info {{
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }}
+        
+        .stat-info span {{
+            font-size: 0.82rem;
+            color: var(--text-muted);
             font-weight: 500;
-            font-family: "SF Mono", "Monaco", monospace;
-            opacity: 0.9;
         }}
         
-        .stat-item strong {{
-            display: block;
-            font-size: 1.4em;
-            color: var(--cyan);
-            font-weight: 600;
-            margin-top: 6px;
-            font-family: "SF Mono", "Monaco", monospace;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-            line-height: 1.3;
+        .stat-info strong {{
+            font-size: 1.45rem;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-family: var(--font-heading);
         }}
         
         @media (max-width: 600px) {{
             .overview-stats {{
-                grid-template-columns: 1fr;
-                gap: 16px;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
             }}
-            
-            h1 {{
-                font-size: 2em;
+            .stat-item {{
+                padding: 14px;
+                gap: 10px;
+                border-radius: 12px;
             }}
-            
-            h2 {{
-                font-size: 1.5em;
+            .stat-icon {{
+                width: 42px;
+                height: 42px;
+                font-size: 1.5rem;
+            }}
+            .stat-info strong {{
+                font-size: 1.2rem;
             }}
         }}
         
         .category-section {{
-            background: var(--base02);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             padding: 24px;
             margin: 24px 0;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--base01);
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
             transition: all 0.3s ease;
         }}
         
         .category-section:hover {{
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-            border-color: var(--cyan);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-color);
+        }}
+        
+        .books-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
         }}
         
         .book-item {{
-            padding: 16px;
-            margin: 12px 0;
-            background: var(--base03);
-            border-radius: 6px;
-            border-left: 4px solid var(--blue);
-            border: 1px solid var(--base01);
-            border-left-width: 4px;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }}
+        
+        .book-item::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-gradient);
+            opacity: 0.8;
         }}
         
         .book-item:hover {{
-            background: var(--base02);
-            transform: translateX(4px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            border-left-color: var(--cyan);
+            transform: translateY(-4px);
+            background: var(--bg-card);
+            border-color: var(--accent-color);
+            box-shadow: 0 8px 16px -4px var(--card-glow);
         }}
         
-        .book-item strong {{
-            color: var(--base1);
-            font-size: 1.05em;
-            display: block;
-            margin-bottom: 6px;
+        .book-title {{
+            font-size: 1.05rem;
+            color: var(--text-primary);
             font-weight: 600;
+            line-height: 1.45;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 3.1rem;
         }}
         
-        .book-item .book-meta {{
-            color: var(--base00);
-            font-size: 0.9em;
-            margin: 8px 0;
-            font-family: "SF Mono", "Monaco", monospace;
+        .book-author {{
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }}
         
-        .book-item .book-link {{
-            display: inline-block;
-            margin-top: 8px;
-            padding: 6px 14px;
-            background: var(--blue);
-            color: var(--base03) !important;
-            border-radius: 6px;
+        .book-badges {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }}
+        
+        .badge {{
+            font-size: 0.72rem;
             font-weight: 600;
-            transition: all 0.2s ease;
-            text-decoration: none !important;
-            font-family: "SF Mono", "Monaco", monospace;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            padding: 2px 7px;
+            border-radius: 5px;
+            text-transform: uppercase;
         }}
         
-        .book-item .book-link:hover {{
-            background: var(--cyan);
+        .badge-epub {{
+            background: var(--badge-epub-bg);
+            color: var(--badge-epub-text);
+        }}
+        
+        .badge-mobi {{
+            background: var(--badge-mobi-bg);
+            color: var(--badge-mobi-text);
+        }}
+        
+        .badge-azw3 {{
+            background: var(--badge-azw3-bg);
+            color: var(--badge-azw3-text);
+        }}
+        
+        .badge-category {{
+            background: var(--bg-header-accent);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }}
+        
+        .book-download-btn {{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 9px 14px;
+            background: var(--accent-gradient);
+            color: #ffffff !important;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.15);
+        }}
+        
+        .book-download-btn:hover {{
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(42, 161, 152, 0.4);
-            color: var(--base03) !important;
+            box-shadow: 0 6px 12px -1px rgba(99, 102, 241, 0.25);
+            opacity: 0.95;
+            text-decoration: none !important;
+        }}
+        
+        .book-download-btn svg {{
+            width: 15px;
+            height: 15px;
         }}
         
         .note-text {{
-            padding: 12px 16px;
-            background: var(--base02);
-            border-left: 4px solid var(--yellow);
-            border-radius: 6px;
-            color: var(--yellow);
-            font-size: 14px;
-            margin: 20px 0;
-            border: 1px solid var(--base01);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            font-family: "SF Mono", "Monaco", monospace;
-        }}
-        
-        .footer-note {{
-            margin-top: 60px;
-            padding: 24px;
-            background: var(--base02);
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border-left: 4px solid var(--accent-color);
             border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            margin: 16px 0;
+            border: 1px solid var(--border-color);
+            border-left-width: 4px;
+            box-shadow: var(--shadow-sm);
+        }}
+        
+        .app-footer {{
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            padding: 30px 20px;
+            margin-top: 50px;
             text-align: center;
-            color: var(--base1);
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            border-top: 3px solid var(--cyan);
-            border: 1px solid var(--base01);
-            border-top-width: 3px;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.01);
         }}
         
-        .footer-note a {{
-            margin: 0 8px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            color: var(--blue);
+        .footer-container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
         }}
         
-        .footer-note a:hover {{
-            background: var(--base03);
-            text-decoration: none;
-            color: var(--cyan);
+        .footer-brand {{
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: var(--font-heading);
         }}
         
-        /* 滚动条样式 - Solarized Dark */
+        .footer-links a {{
+            color: var(--accent-color);
+            font-weight: 500;
+            margin: 0 10px;
+        }}
+        
+        .footer-copyright {{
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }}
+        
         ::-webkit-scrollbar {{
-            width: 12px;
+            width: 10px;
+            height: 10px;
         }}
         
         ::-webkit-scrollbar-track {{
-            background: var(--base03);
+            background: var(--bg-app);
         }}
         
         ::-webkit-scrollbar-thumb {{
-            background: var(--base01);
-            border-radius: 6px;
-            border: 2px solid var(--base03);
+            background: var(--border-color);
+            border-radius: 5px;
         }}
         
         ::-webkit-scrollbar-thumb:hover {{
-            background: var(--base00);
+            background: var(--text-muted);
         }}
         
-        /* 代码风格字体优化 */
         code {{
-            background: var(--base02);
-            color: var(--green);
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: "SF Mono", "Monaco", monospace;
-            font-size: 0.9em;
-            border: 1px solid var(--base01);
+            background: var(--bg-app);
+            color: var(--accent-color);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+            font-size: 0.88rem;
+            border: 1px solid var(--border-color);
         }}
         
-        /* 强调文本 */
         strong {{
-            color: var(--base1);
+            color: var(--text-primary);
             font-weight: 600;
-        }}
-        
-        /* 链接特殊样式 */
-        a[href^="http"] {{
-            color: var(--blue);
-        }}
-        
-        a[href^="http"]:hover {{
-            color: var(--cyan);
         }}
     </style>
 </head>
 <body>
-<header>
-{content}
-</header>
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <span class="logo-emoji">📚</span>
+                <h1 class="logo-text">Ebook Treasure Chest</h1>
+            </div>
+            <p class="subtitle">汇聚微信读书、帆书、喜马拉雅等大部分优质电子书下载，支持 epub/mobi/azw3 格式，完全免费</p>
+            
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="切换主题">
+                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
 
-<footer class="footer-note">
-    <p>📚 电子书下载宝库 </p>
-    <p style="margin-top: 8px; font-size: 12px;">
-        <a href="https://github.com/jbiaojerry/ebook-treasure-chest" target="_blank" rel="noopener">GitHub 仓库</a> |
-        <a href="README.md" target="_blank">使用说明</a>
-    </p>
-</footer>
-{stats_script}
+    <div class="main-wrapper">
+        <main>
+            {content}
+        </main>
+    </div>
+
+    <footer class="app-footer">
+        <div class="footer-container">
+            <p class="footer-brand">📚 电子书下载宝库</p>
+            <p class="footer-links">
+                <a href="https://github.com/jbiaojerry/ebook-treasure-chest" target="_blank" rel="noopener">GitHub 仓库</a> |
+                <a href="README.md" target="_blank">使用说明</a>
+            </p>
+            <p class="footer-copyright">&copy; 2026 Ebook Treasure Chest. All rights reserved.</p>
+        </div>
+    </footer>
+
+    {stats_script}
+    
+    <script>
+        // 主题切换脚本
+        (function() {{
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const savedTheme = localStorage.getItem('theme');
+            let currentTheme = 'dark'; // 默认深色
+            
+            if (savedTheme) {{
+                currentTheme = savedTheme;
+            }} else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {{
+                currentTheme = 'light';
+            }}
+            
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            
+            if (themeToggleBtn) {{
+                themeToggleBtn.addEventListener('click', () => {{
+                    const theme = document.documentElement.getAttribute('data-theme');
+                    const newTheme = theme === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                }});
+            }}
+        }})();
+    </script>
 </body>
 </html>"""
     
@@ -878,7 +1277,6 @@ def main():
         categories_count = len(categories)
 
     md_parts = []
-    md_parts.append("# 📚 Ebook Treasure Chest\n")
     md_parts.append(render_overview(total_books, categories_count, languages, levels))
     md_parts.append("\n---\n")
     md_parts.append(render_search_ui())
@@ -907,6 +1305,11 @@ def main():
     else:
         print("⚠️  警告：未找到 all-books.json")
         print("💡 提示：运行 'python scripts/parse_md_to_json.py' 生成 all-books.json")
+
+
+if __name__ == "__main__":
+    main()
+
 
 
 if __name__ == "__main__":
