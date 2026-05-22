@@ -252,11 +252,62 @@ function initSearch() {
   }
 }
 
+let pendingDownloadUrl = '';
+
+// 初始化升级弹窗交互逻辑
+function initUpgradeModal() {
+  const modal = document.getElementById('upgrade-modal');
+  const confirmBtn = document.getElementById('modal-download-btn');
+  const closeBtn = document.getElementById('modal-close-btn');
+
+  if (!modal || !confirmBtn || !closeBtn) {
+    console.warn("⚠️ 升级弹窗相关 DOM 元素未找到");
+    return;
+  }
+
+  // 全局拦截下载按钮点击
+  document.body.addEventListener('click', (e) => {
+    const downloadBtn = e.target.closest('.book-download-btn');
+    if (downloadBtn) {
+      // 排除弹窗内部的下载按钮
+      if (downloadBtn.id === 'modal-download-btn') return;
+
+      e.preventDefault();
+      pendingDownloadUrl = downloadBtn.getAttribute('href') || '#';
+      modal.classList.add('active');
+    }
+  });
+
+  // “我已支付，开始下载” 按钮点击
+  confirmBtn.addEventListener('click', () => {
+    if (pendingDownloadUrl && pendingDownloadUrl !== '#') {
+      window.open(pendingDownloadUrl, '_blank', 'noopener');
+    }
+    modal.classList.remove('active');
+    pendingDownloadUrl = '';
+  });
+
+  // “暂不升级” 按钮点击
+  closeBtn.addEventListener('click', () => {
+    modal.classList.remove('active');
+    pendingDownloadUrl = '';
+  });
+
+  // 点击遮罩层背景关闭弹窗
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+      pendingDownloadUrl = '';
+    }
+  });
+}
+
 // 页面加载完成后加载数据并初始化
 (function() {
   const init = () => {
     loadBooks();
     initSearch();
+    initUpgradeModal();
   };
   
   if (document.readyState === 'loading') {

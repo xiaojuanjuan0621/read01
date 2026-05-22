@@ -1176,6 +1176,139 @@ def generate_html(md_content):
             color: var(--text-primary);
             font-weight: 600;
         }}
+        
+        /* Modal Styles */
+        .modal-overlay {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }}
+        
+        .modal-overlay.active {{
+            opacity: 1;
+            pointer-events: auto;
+        }}
+        
+        .modal-container {{
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            padding: 30px 24px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            position: relative;
+        }}
+        
+        .modal-overlay.active .modal-container {{
+            transform: translateY(0);
+        }}
+        
+        .modal-header {{
+            margin-bottom: 16px;
+        }}
+        
+        .modal-title {{
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: var(--font-heading);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }}
+        
+        .modal-body {{
+            margin-bottom: 24px;
+        }}
+        
+        .modal-text {{
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }}
+        
+        .modal-qr-wrapper {{
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 16px;
+            display: inline-block;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 12px;
+        }}
+        
+        .modal-qr-image {{
+            width: 200px;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+        }}
+        
+        .modal-qr-hint {{
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }}
+        
+        .modal-footer {{
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }}
+        
+        .modal-btn {{
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }}
+        
+        .modal-btn-primary {{
+            background: var(--accent-gradient);
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.15);
+        }}
+        
+        .modal-btn-primary:hover {{
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px -1px rgba(99, 102, 241, 0.25);
+            opacity: 0.95;
+        }}
+        
+        .modal-btn-secondary {{
+            background: var(--bg-app);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }}
+        
+        .modal-btn-secondary:hover {{
+            background: var(--border-color);
+            color: var(--text-primary);
+        }}
     </style>
 </head>
 <body>
@@ -1250,6 +1383,33 @@ def generate_html(md_content):
             }}
         }})();
     </script>
+
+    <!-- Upgrade Modal -->
+    <div id="upgrade-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">💎 升级永久会员获取无限下载 💎</h3>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">您当前为普通用户，升级为永久会员，即可无限获取全部电子书资源！</p>
+                <div class="modal-qr-wrapper">
+                    <img class="modal-qr-image" src="upgrade-qr.jpg" alt="支付宝支付二维码">
+                </div>
+                <div class="modal-qr-hint">推荐使用支付宝扫码赞赏 0.01 元升级</div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-download-btn" class="modal-btn modal-btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    我已支付，开始下载
+                </button>
+                <button id="modal-close-btn" class="modal-btn modal-btn-secondary">暂不升级</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>"""
     
@@ -1305,11 +1465,6 @@ def main():
     else:
         print("⚠️  警告：未找到 all-books.json")
         print("💡 提示：运行 'python scripts/parse_md_to_json.py' 生成 all-books.json")
-
-
-if __name__ == "__main__":
-    main()
-
 
 
 if __name__ == "__main__":
